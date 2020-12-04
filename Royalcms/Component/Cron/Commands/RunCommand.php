@@ -1,10 +1,12 @@
 <?php
 
-namespace Royalcms\Component\Cron;
+namespace Royalcms\Component\Cron\Commands;
 
 use Royalcms\Component\Console\Command;
+use Royalcms\Component\Cron\Cron;
 
-class RunCommand extends Command {
+class RunCommand extends Command
+{
 
     /**
      * The console command name.
@@ -25,7 +27,8 @@ class RunCommand extends Command {
      *
      * @return void
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -34,12 +37,13 @@ class RunCommand extends Command {
      *
      * @return void
      */
-    public function fire() {
+    public function fire()
+    {
         // Fire event before the Cron jobs will be executed
         \RC_Event::fire('cron.collectJobs');
         $report = Cron::run();
 
-        if($report['inTime'] === -1) {
+        if ($report['inTime'] === -1) {
             $inTime = -1;
         } else if ($report['inTime']) {
             $inTime = 'true';
@@ -50,8 +54,8 @@ class RunCommand extends Command {
         // Create table.
         $table = new \Symfony\Component\Console\Helper\Table($this->getOutput());
         $table
-        ->setHeaders(array('Run date', 'In time', 'Run time', 'Errors', 'Jobs'))
-        ->setRows(array(array($report['rundate'], $inTime, round($report['runtime'], 4), $report['errors'], count($report['crons']))));
+            ->setHeaders(array('Run date', 'In time', 'Run time', 'Errors', 'Jobs'))
+            ->setRows(array(array($report['rundate'], $inTime, round($report['runtime'], 4), $report['errors'], count($report['crons']))));
 
         // Output table.
         $table->render($this->getOutput());
@@ -62,7 +66,8 @@ class RunCommand extends Command {
      *
      * @return array
      */
-    protected function getArguments() {
+    protected function getArguments()
+    {
         return array();
     }
 
@@ -71,7 +76,8 @@ class RunCommand extends Command {
      *
      * @return array
      */
-    protected function getOptions() {
+    protected function getOptions()
+    {
         return array();
     }
 

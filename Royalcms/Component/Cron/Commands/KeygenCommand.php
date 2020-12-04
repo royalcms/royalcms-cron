@@ -1,11 +1,12 @@
 <?php
 
-namespace Royalcms\Component\Cron;
+namespace Royalcms\Component\Cron\Commands;
 
 use Royalcms\Component\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
 
-class KeygenCommand extends Command {
+class KeygenCommand extends Command
+{
 
     /**
      * The console command name.
@@ -26,7 +27,8 @@ class KeygenCommand extends Command {
      *
      * @return void
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -35,15 +37,16 @@ class KeygenCommand extends Command {
      *
      * @return void
      */
-    public function fire() {
-        
-        
+    public function fire()
+    {
+
+
         $length = $this->argument('length');
-        if(empty($length)) {
+        if (empty($length)) {
             $length = 32;
         }
 
-        $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+        $chars      = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
         $final_rand = "";
         for ($i = 0; $i < $length; $i++) {
             $final_rand .= $chars[rand(0, strlen($chars) - 1)];
@@ -56,7 +59,8 @@ class KeygenCommand extends Command {
      *
      * @return array
      */
-    protected function getArguments() {
+    protected function getArguments()
+    {
         return array(
             array('length', InputArgument::OPTIONAL, 'Length of the security key, default is 32')
         );
@@ -67,7 +71,8 @@ class KeygenCommand extends Command {
      *
      * @return array
      */
-    protected function getOptions() {
+    protected function getOptions()
+    {
         return array();
     }
 

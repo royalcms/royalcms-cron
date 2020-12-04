@@ -1,10 +1,14 @@
 <?php
 
-namespace Royalcms\Component\Cron;
+namespace Royalcms\Component\Cron\Commands;
 
+use RC_Cron;
+use RC_Event;
 use Royalcms\Component\Console\Command;
+use Symfony\Component\Console\Helper\Table;
 
-class ListCommand extends Command {
+class ListCommand extends Command
+{
 
     /**
      * The console command name.
@@ -25,7 +29,8 @@ class ListCommand extends Command {
      *
      * @return void
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -34,15 +39,16 @@ class ListCommand extends Command {
      *
      * @return void
      */
-    public function fire() {
+    public function fire()
+    {
         // Get the current timestamp and fire the collect event
         $runDate = new \DateTime();
-        \RC_Event::fire('cron.collectJobs', array($runDate->getTimestamp()));
+        RC_Event::dispatch('cron.collectJobs', array($runDate->getTimestamp()));
         // Get all registered Cron jobs
-        $jobs = Cron::getCronJobs();
+        $jobs = RC_Cron::getCronJobs();
 
         // Create the table helper with headers.
-        $table = $this->getHelperSet()->get('table');
+        $table = new Table($this->output);
         $table->setHeaders(array('Jobname', 'Expression', 'Activated'));
 
         // Run through all registered jobs
@@ -59,7 +65,7 @@ class ListCommand extends Command {
         }
 
         // Render and output the table.
-        $table->render($this->getOutput());
+        $table->render();
     }
 
     /**
@@ -67,7 +73,8 @@ class ListCommand extends Command {
      *
      * @return array
      */
-    protected function getArguments() {
+    protected function getArguments()
+    {
         return array();
     }
 
@@ -76,7 +83,8 @@ class ListCommand extends Command {
      *
      * @return array
      */
-    protected function getOptions() {
+    protected function getOptions()
+    {
         return array();
     }
 

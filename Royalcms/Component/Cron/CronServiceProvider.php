@@ -2,9 +2,14 @@
 
 namespace Royalcms\Component\Cron;
 
+use Illuminate\Contracts\Support\DeferrableProvider;
+use Royalcms\Component\Cron\Commands\KeygenCommand;
+use Royalcms\Component\Cron\Commands\ListCommand;
+use Royalcms\Component\Cron\Commands\RunCommand;
 use Royalcms\Component\Support\ServiceProvider;
 
-class CronServiceProvider extends ServiceProvider {
+class CronServiceProvider extends ServiceProvider implements DeferrableProvider
+{
 
     /**
      * Indicates if loading of the provider is deferred.
@@ -18,8 +23,9 @@ class CronServiceProvider extends ServiceProvider {
      *
      * @return void
      */
-    public function boot() {
-        $path = $this->royalcms->appPath() . '/cron/classes';
+    public function boot()
+    {
+        $path = realpath(__DIR__ . '/../../../config');
         $this->package('royalcms/cron', null, $path);
     }
 
@@ -28,30 +34,56 @@ class CronServiceProvider extends ServiceProvider {
      *
      * @return void
      */
-    public function register() {
-        $this->royalcms->singleton('cron', function($royalcms) {
+    public function register()
+    {
+        $this->royalcms->singleton('cron', function ($royalcms) {
             return new Cron;
         });
 
-        $this->royalcms->booting(function() {
-            $loader = \Royalcms\Component\Foundation\AliasLoader::getInstance();
-            $loader->alias('RC_Cron', 'Royalcms\Component\Cron\Facades\Cron');
-        });
+        $this->loadAlias();
 
-        $this->royalcms->singleton('cron::command.run', function($royalcms) {
+        $this->registerCommands();
+    }
+
+    protected function registerCommands()
+    {
+        $this->royalcms->singleton('cron::command.run', function ($royalcms) {
             return new RunCommand;
         });
         $this->commands('cron::command.run');
 
-        $this->royalcms->singleton('cron::command.list', function($royalcms) {
+        $this->royalcms->singleton('cron::command.list', function ($royalcms) {
             return new ListCommand;
         });
         $this->commands('cron::command.list');
 
-        $this->royalcms->singleton('cron::command.keygen', function($royalcms) {
+        $this->royalcms->singleton('cron::command.keygen', function ($royalcms) {
             return new KeygenCommand;
         });
         $this->commands('cron::command.keygen');
+    }
+
+    /**
+     * Load the alias = One less install step for the user
+     */
+    protected function loadAlias()
+    {
+        $loader = \Royalcms\Component\Foundation\AliasLoader::getInstance();
+
+        foreach (self::aliases() as $class => $alias) {
+            $loader->alias($class, $alias);
+        }
+    }
+
+    /**
+     * Load the alias = One less install step for the user
+     */
+    public static function aliases()
+    {
+
+        return [
+            'RC_Cron' => 'Royalcms\Component\Cron\Facades\Cron',
+        ];
     }
 
     /**
@@ -59,7 +91,8 @@ class CronServiceProvider extends ServiceProvider {
      *
      * @return array
      */
-    public function provides() {
+    public function provides()
+    {
         return array('cron');
     }
 

@@ -1,5 +1,6 @@
 <?php
 
- class RC_Cron extends \Royalcms\Component\Cron\Facades\Cron {
- 
+class RC_Cron extends \Royalcms\Component\Cron\Cron
+{
+
 }

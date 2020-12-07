@@ -16,5 +16,10 @@ class Job extends Model
         return $this->belongsTo('\Royalcms\Component\Cron\Models\Manager', 'cron_manager_id');
     }
 
+    public function __construct(array $attributes = [])
+    {
+        $this->connection = config('cron::config.databaseConnection');
+        parent::__construct($attributes);
+    }
 
 }

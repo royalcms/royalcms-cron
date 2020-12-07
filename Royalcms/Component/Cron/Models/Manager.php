@@ -16,5 +16,10 @@ class Manager extends Model
         return $this->hasMany('\Royalcms\Component\Cron\Models\Job', 'cron_manager_id');
     }
 
+    public function __construct(array $attributes = [])
+    {
+        $this->connection = config('cron::config.databaseConnection');
+        parent::__construct($attributes);
+    }
 
 }

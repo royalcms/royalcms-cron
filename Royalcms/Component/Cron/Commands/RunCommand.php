@@ -4,6 +4,8 @@ namespace Royalcms\Component\Cron\Commands;
 
 use Royalcms\Component\Console\Command;
 use Royalcms\Component\Cron\Cron;
+use Royalcms\Component\Cron\Events\CronCollectJobsEvent;
+use RC_Event;
 
 class RunCommand extends Command
 {
@@ -23,16 +25,6 @@ class RunCommand extends Command
     protected $description = 'Run Cron jobs';
 
     /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Execute the console command.
      *
      * @return void
@@ -40,7 +32,9 @@ class RunCommand extends Command
     public function fire()
     {
         // Fire event before the Cron jobs will be executed
-        \RC_Event::fire('cron.collectJobs');
+        $runDate = new \DateTime();
+        RC_Event::dispatch(new CronCollectJobsEvent($runDate->getTimestamp()));
+
         $report = Cron::run();
 
         if ($report['inTime'] === -1) {
@@ -55,7 +49,13 @@ class RunCommand extends Command
         $table = new \Symfony\Component\Console\Helper\Table($this->getOutput());
         $table
             ->setHeaders(array('Run date', 'In time', 'Run time', 'Errors', 'Jobs'))
-            ->setRows(array(array($report['rundate'], $inTime, round($report['runtime'], 4), $report['errors'], count($report['crons']))));
+            ->setRows(array(
+                array(
+                    $report['rundate'], $inTime, round($report['runtime'], 4),
+                    $report['errors'],
+                    count($report['crons'])
+                )
+            ));
 
         // Output table.
         $table->render($this->getOutput());

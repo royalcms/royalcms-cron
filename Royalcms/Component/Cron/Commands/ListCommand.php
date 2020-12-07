@@ -5,6 +5,7 @@ namespace Royalcms\Component\Cron\Commands;
 use RC_Cron;
 use RC_Event;
 use Royalcms\Component\Console\Command;
+use Royalcms\Component\Cron\Events\CronCollectJobsEvent;
 use Symfony\Component\Console\Helper\Table;
 
 class ListCommand extends Command
@@ -25,16 +26,6 @@ class ListCommand extends Command
     protected $description = 'List Cron jobs';
 
     /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Execute the console command.
      *
      * @return void
@@ -43,7 +34,8 @@ class ListCommand extends Command
     {
         // Get the current timestamp and fire the collect event
         $runDate = new \DateTime();
-        RC_Event::dispatch('cron.collectJobs', array($runDate->getTimestamp()));
+        RC_Event::dispatch(new CronCollectJobsEvent($runDate->getTimestamp()));
+
         // Get all registered Cron jobs
         $jobs = RC_Cron::getCronJobs();
 

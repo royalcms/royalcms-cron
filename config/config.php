@@ -24,6 +24,9 @@ return array(
     'inTimeCheck' => true,
     
     // Cron application key for securing the integrated Cron run route - if the value is empty, the route is disabled 
-    'cronKey' => ''
+    'cronKey' => '',
+
+    // Setting the cron's database connection name.
+    'databaseConnection' => 'default',
     
 );

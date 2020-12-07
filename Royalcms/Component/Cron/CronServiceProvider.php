@@ -89,7 +89,6 @@ class CronServiceProvider extends ServiceProvider //implements DeferrableProvide
      */
     public static function aliases()
     {
-
         return [
             'RC_Cron' => 'Royalcms\Component\Cron\Facades\Cron',
         ];

@@ -186,7 +186,7 @@ class Cron
                         }
                     }
                 } else {
-                    self::log('error', 'Could not get the path to the Laravel storage directory.');
+                    self::log('error', 'Could not get the path to the Royalcms storage directory.');
                 }
             }
 
@@ -337,7 +337,7 @@ class Cron
             }
 
             // Fire event after the Cron run was executed
-            RC_Event::fire(new CronAfterRunEvent($returnArray['rundate'], $returnArray['inTime'], $returnArray['runtime'], $returnArray['errors'], $returnArray['crons'], $returnArray['lastRun']));
+            RC_Event::dispatch(new CronAfterRunEvent($returnArray['rundate'], $returnArray['inTime'], $returnArray['runtime'], $returnArray['errors'], $returnArray['crons'], $returnArray['lastRun']));
 
             // Return the cron jobs array (including rundate, in-time boolean, runtime in seconds, number of errors and an array with the cron jobs reports)
             return $returnArray;

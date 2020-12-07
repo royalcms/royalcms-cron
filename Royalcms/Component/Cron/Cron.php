@@ -7,6 +7,14 @@
 namespace Royalcms\Component\Cron;
 
 use RC_Config;
+use RC_Event;
+use Royalcms\Component\Cron\Events\CronAfterRunEvent;
+use Royalcms\Component\Cron\Events\CronBeforeRunEvent;
+use Royalcms\Component\Cron\Events\CronJobErrorEvent;
+use Royalcms\Component\Cron\Events\CronJobSuccessEvent;
+use Royalcms\Component\Cron\Events\CronLockedEvent;
+use Royalcms\Component\Cron\Models\Job;
+use Royalcms\Component\Cron\Models\Manager;
 
 /**
  * Cron
@@ -133,7 +141,7 @@ class Cron
             $runDate = new \DateTime();
 
             // Fire event before the Cron run will be executed
-            \RC_Event::fire('cron.beforeRun', array($runDate->getTimestamp()));
+            RC_Event::dispatch(new CronBeforeRunEvent($runDate->getTimestamp()));
 
             // Check if prevent job overlapping is enabled and create lock file if true
             $preventOverlapping = self::getConfig('preventOverlapping', false);
@@ -151,17 +159,18 @@ class Cron
 
                         if (self::isDatabaseLogging()) {
                             // Create a new cronmanager database object with runtime -1
-                            $cronmanager          = new \Royalcms\Component\Cron\Models\Manager();
+                            $cronmanager          = new Manager();
                             $cronmanager->rundate = $runDate;
                             $cronmanager->runtime = -1;
                             $cronmanager->save();
                         }
 
                         // Fire the Cron locked event
-                        \RC_Event::fire('cron.locked', array('lockfile' => $lockFile));
+                        RC_Event::dispatch(new CronLockedEvent($lockFile));
 
                         // Fire the after run event, because we are done here
-                        \RC_Event::fire('cron.afterRun', array('rundate' => $runDate->getTimestamp(), 'inTime' => -1, 'runtime' => -1, 'errors' => 0, 'crons' => array(), 'lastRun' => array()));
+                        RC_Event::dispatch(new CronAfterRunEvent($runDate->getTimestamp(), -1, -1, 0, [], []));
+
                         return array('rundate' => $runDate->getTimestamp(), 'inTime' => -1, 'runtime' => -1, 'errors' => 0, 'crons' => array(), 'lastRun' => array());
                     } else {
 
@@ -187,7 +196,7 @@ class Cron
             // Getting last run time only if database logging is enabled
             if (self::isDatabaseLogging()) {
                 // Get the time (in seconds) between this and the last run and save this to $timeBetween
-                $lastManager = \Royalcms\Component\Cron\Models\Manager::orderBy('rundate', 'DESC')->take(1)->get();
+                $lastManager = Manager::orderBy('rundate', 'DESC')->take(1)->get();
                 if (!empty($lastManager[0])) {
                     $lastRun     = new \DateTime($lastManager[0]->rundate);
                     $timeBetween = $runDate->getTimestamp() - $lastRun->getTimestamp();
@@ -242,10 +251,10 @@ class Cron
                         // Log error job
                         self::log('error', 'Job with the name ' . $job['name'] . ' was run with errors.');
                         // Fire event after executing a job with erros
-                        \RC_Event::fire('cron.jobError', array('name' => $job['name'], 'return' => $return, 'runtime' => ($afterOne - $beforeOne), 'rundate' => $runDate->getTimestamp()));
+                        RC_Event::dispatch(new CronJobErrorEvent($job['name'], $return, ($afterOne - $beforeOne), $runDate->getTimestamp()));
                     } else {
                         // Fire event after executing a job successfully
-                        \RC_Event::fire('cron.jobSuccess', array('name' => $job['name'], 'runtime' => ($afterOne - $beforeOne), 'rundate' => $runDate->getTimestamp()));
+                        RC_Event::dispatch(new CronJobSuccessEvent($job['name'], ($afterOne - $beforeOne), $runDate->getTimestamp()));
                     }
 
                     // Push the information of the ran cron job to the allJobs array (including name, return value, runtime)
@@ -260,7 +269,7 @@ class Cron
             if (self::isDatabaseLogging()) {
 
                 // Create a new cronmanager database object for this run and save it
-                $cronmanager          = new \Royalcms\Component\Cron\Models\Manager();
+                $cronmanager          = new Manager();
                 $cronmanager->rundate = $runDate;
                 $cronmanager->runtime = $afterAll - $beforeAll;
                 $cronmanager->save();
@@ -328,7 +337,7 @@ class Cron
             }
 
             // Fire event after the Cron run was executed
-            \RC_Event::fire('cron.afterRun', $returnArray);
+            RC_Event::fire(new CronAfterRunEvent($returnArray['rundate'], $returnArray['inTime'], $returnArray['runtime'], $returnArray['errors'], $returnArray['crons'], $returnArray['lastRun']));
 
             // Return the cron jobs array (including rundate, in-time boolean, runtime in seconds, number of errors and an array with the cron jobs reports)
             return $returnArray;
@@ -376,7 +385,7 @@ class Cron
     {
 
         foreach ($jobArray as $job) {
-            $jobEntry       = new \Royalcms\Component\Cron\Models\Job();
+            $jobEntry       = new Job();
             $jobEntry->name = $job['name'];
 
             // Get the type of the returned value
@@ -742,7 +751,7 @@ class Cron
             date_sub($now, date_interval_create_from_date_string($deleteDatabaseEntriesAfter . ' hours'));
 
             // Get the old manager entries which are expired
-            $oldManagers = \Royalcms\Component\Cron\Models\Manager::where('rundate', '<=', $now->format('Y-m-d H:i:s'))->get();
+            $oldManagers = Manager::where('rundate', '<=', $now->format('Y-m-d H:i:s'))->get();
 
             foreach ($oldManagers as $manager) {
 

@@ -8,7 +8,7 @@ use Royalcms\Component\Cron\Commands\ListCommand;
 use Royalcms\Component\Cron\Commands\RunCommand;
 use Royalcms\Component\Support\ServiceProvider;
 
-class CronServiceProvider extends ServiceProvider implements DeferrableProvider
+class CronServiceProvider extends ServiceProvider //implements DeferrableProvider
 {
 
     /**
@@ -25,8 +25,17 @@ class CronServiceProvider extends ServiceProvider implements DeferrableProvider
      */
     public function boot()
     {
-        $path = realpath(__DIR__ . '/../../../config');
-        $this->package('royalcms/cron', null, $path);
+        $this->setupConfig();
+    }
+
+    /**
+     * Setup the config.
+     *
+     * @return void
+     */
+    protected function setupConfig()
+    {
+        $this->package('royalcms/cron');
     }
 
     /**

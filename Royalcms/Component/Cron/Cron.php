@@ -254,7 +254,7 @@ class Cron
                         RC_Event::dispatch(new CronJobErrorEvent($job['name'], $return, ($afterOne - $beforeOne), $runDate->getTimestamp()));
                     } else {
                         // Fire event after executing a job successfully
-                        $return = 'Job with the name ' . $job['name'] . ' was run with errors.';
+                        $return = 'Job with the name ' . $job['name'] . ' was run successfully.';
                         RC_Event::dispatch(new CronJobSuccessEvent($job['name'], ($afterOne - $beforeOne), $runDate->getTimestamp()));
                     }
 
